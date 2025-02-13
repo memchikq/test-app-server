@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, ObjectId } from 'mongoose';
+import { HydratedDocument, ObjectId, SchemaTypes, Types } from 'mongoose';
+import { Subject } from './subject.entity';
+import { ClassRooms } from './classrooms.entity';
 
 export type TemplateDocument = HydratedDocument<Template>;
 
@@ -10,23 +12,18 @@ export class Template {
 
   @Prop([
     {
-      slotId: String,
+      _id: Types.ObjectId,
       startTime: String,
       endTime: String,
     },
   ])
-  timeRanges: { slotId: ObjectId; startTime: string; endTime: string }[];
+  timeRanges: { _id: Types.ObjectId; startTime: string; endTime: string }[];
 
-  @Prop([
-    {
-      classroomId: String,
-      name: String,
-    },
-  ])
-  classRooms: { classroomId: ObjectId; name: string }[];
+  @Prop({ type: [{ type: SchemaTypes.ObjectId, ref: Subject.name }] })
+  subjects: Types.ObjectId[];
 
-  @Prop([{ subjectId: String, name: String }])
-  subjects: { subjectId: ObjectId; name: string }[];
+  @Prop({ type: [{ type: SchemaTypes.ObjectId, ref: ClassRooms.name }] })
+  classRooms: Types.ObjectId[];
 }
 
 export const Templatehema = SchemaFactory.createForClass(Template);

@@ -49,7 +49,7 @@ export class ClassRoomDto {
   })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  ids: string;
 }
 
 export class SubjectDto {
@@ -59,7 +59,7 @@ export class SubjectDto {
   })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  ids: string;
 }
 
 export class CreateTemplateDto {
@@ -74,22 +74,18 @@ export class CreateTemplateDto {
   timeRanges: TimeRangeDto[];
 
   @ApiProperty({
-    description: 'Список классов',
-    type: [ClassRoomDto],
+    description: 'Список ID аудиторий',
   })
   @IsArray()
   @ArrayNotEmpty()
-  @ValidateNested({ each: true })
-  @Type(() => ClassRoomDto)
-  classRooms: ClassRoomDto[];
+  @Type(() => String)
+  classRooms: string[];
 
   @ApiProperty({
-    description: 'Список предметов',
-    type: [SubjectDto],
+    description: 'Список ID предметов',
   })
   @IsArray()
   @ArrayNotEmpty()
-  @ValidateNested({ each: true })
-  @Type(() => SubjectDto)
-  subjects: SubjectDto[];
+  @Type(() => String)
+  subjects: string[];
 }
