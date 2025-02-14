@@ -12,6 +12,7 @@ import {
   StudentGroupDocument,
 } from 'src/entity/entities/student-group.entity';
 import { GetScheduleDto } from './dto/get-schedule.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 @Injectable()
 export class ScheduleService {
@@ -24,7 +25,7 @@ export class ScheduleService {
     private studentGroupModel: Model<StudentGroup>,
   ) {}
 
-  async getSchedule(dto:GetScheduleDto) {
+  async getSchedule(dto: GetScheduleDto) {
     try {
       const scheduleData = await this.scheduleModel.aggregate([
         {
@@ -59,7 +60,8 @@ export class ScheduleService {
         },
         {
           $group: {
-            _id: '$slots.groupId',
+            _id: '$slots.groupId', 
+            originalId: { $first: '$_id' }, 
             order: { $first: '$order' },
             slots: { $push: '$slots' },
           },
@@ -68,23 +70,24 @@ export class ScheduleService {
           $sort: { order: 1 },
         },
         {
-          $project: {
-            _id: 1,
-            order: 1,
-            slots: {
-              $map: {
-                input: '$slots',
-                as: 'slot',
-                in: {
-                  timeSlot: '$$slot.timeSlot',
-                  isFixed: '$$slot.isFixed',
-                  classroomData: '$$slot.classroomData',
-                  groupData: '$$slot.groupData',
-                  subjectData: '$$slot.subjectData',
-                },
+        $project: {
+          _id: 1,
+          order: 1,
+          originalId: 1, 
+          slots: {
+            $map: {
+              input: '$slots',
+              as: 'slot',
+              in: {
+                timeSlot: '$$slot.timeSlot',
+                isFixed: '$$slot.isFixed',
+                classroomData: '$$slot.classroomData',
+                groupData: '$$slot.groupData',
+                subjectData: '$$slot.subjectData',
               },
             },
           },
+        },
         },
       ]);
       return scheduleData;
@@ -106,7 +109,6 @@ export class ScheduleService {
 
       const schedules = [];
       const timeSlots = template.timeRanges;
-      ;
       const subjects = template.subjects;
       const maxPossibleGroups = timeSlots.length * template.classRooms.length;
       if (groups.length > maxPossibleGroups) {
@@ -121,9 +123,9 @@ export class ScheduleService {
       const groupOrderMap = new Map();
       for (const timeSlot of timeSlots) {
         const usedSlots = new Map();
-        
+
         let classRoomIndex = 0;
-        const classRooms = this.shuffleArray([...template.classRooms])
+        const classRooms = this.shuffleArray([...template.classRooms]);
         for (const group of shuffledGroups) {
           const subject = subjects[Math.floor(Math.random() * subjects.length)];
           const classRoom = classRooms[classRoomIndex];
@@ -172,6 +174,20 @@ export class ScheduleService {
       }
       await this.scheduleModel.insertMany(schedules);
       return schedules;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateOrder(dto: UpdateOrderDto) {
+    try {
+      for (const item of dto.payload) {
+        await this.scheduleModel.updateOne(
+          { _id: new Types.ObjectId(item.id) },
+          { $set: { order: item.order } },
+        );
+      }
+      return { message: 'Поряд успешно изменён' };
     } catch (error) {
       throw error;
     }
