@@ -106,9 +106,9 @@ export class ScheduleService {
 
       const schedules = [];
       const timeSlots = template.timeRanges;
-      const classRooms = template.classRooms;
+      ;
       const subjects = template.subjects;
-      const maxPossibleGroups = timeSlots.length * classRooms.length;
+      const maxPossibleGroups = timeSlots.length * template.classRooms.length;
       if (groups.length > maxPossibleGroups) {
         throw new BadRequestException(
           `Невозможно распределить все группы. Максимальное количество групп которое можно распределить: ${maxPossibleGroups}`,
@@ -121,14 +121,13 @@ export class ScheduleService {
       const groupOrderMap = new Map();
       for (const timeSlot of timeSlots) {
         const usedSlots = new Map();
-
+        
         let classRoomIndex = 0;
-
+        const classRooms = this.shuffleArray([...template.classRooms])
         for (const group of shuffledGroups) {
           const subject = subjects[Math.floor(Math.random() * subjects.length)];
-          const classRoom = classRooms[classRoomIndex % classRooms.length];
+          const classRoom = classRooms[classRoomIndex];
           classRoomIndex++;
-
           if (
             !this.isConflict(
               usedSlots,
@@ -171,8 +170,6 @@ export class ScheduleService {
           }
         }
       }
-      console.log('schedule', schedules);
-      console.log('schedule', schedules.length);
       await this.scheduleModel.insertMany(schedules);
       return schedules;
     } catch (error) {
