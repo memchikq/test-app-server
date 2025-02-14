@@ -1,5 +1,5 @@
-import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { HydratedDocument, ObjectId, Types } from "mongoose";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument, ObjectId, Types } from 'mongoose';
 
 export type ScheduleDocument = HydratedDocument<Schedule>;
 
@@ -12,23 +12,24 @@ export class Schedule {
   })
   templateId: ObjectId;
 
+  @Prop()
+  order: number;
+
   @Prop([
     {
-      timeSlotId: Types.ObjectId,
+      timeSlot: { startTime: String, endTime: String },
       classroomId: Types.ObjectId,
       subjectId: Types.ObjectId,
       groupId: Types.ObjectId,
-      order: Number,
       isFixed: Boolean,
     },
   ])
   slots: {
-    timeSlotId: ObjectId;
+    timeSlot: { startTime: string; endTime: string };
     classroomId: ObjectId;
     subjectId: ObjectId;
     groupId: ObjectId;
     isFixed: boolean;
-    order: number;
   };
 }
 

@@ -1,18 +1,21 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
+import { GetScheduleDto } from './dto/get-schedule.dto';
+import { ApiBody } from '@nestjs/swagger';
+import { GenerateScheduleDto } from './dto/generate-schedule.dto';
 
 @Controller('schedule')
 export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
 
-  @Get('generate')
-  async generateSchedule(){
-    return this.scheduleService.generateSchedule({templateId:"67adb2da597e93b8301a198e"});
+  @ApiBody({ type: GenerateScheduleDto })
+  @Post('generate')
+  async generateSchedule(@Body() dto: GenerateScheduleDto) {
+    return this.scheduleService.generateSchedule(dto);
   }
 
   @Get()
-  async getD(){
-    return this.scheduleService.getD()
+  async getSchedule(@Query() dto: GetScheduleDto) {
+    return this.scheduleService.getSchedule(dto);
   }
-
 }

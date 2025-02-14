@@ -12,7 +12,6 @@ export class Template {
 
   @Prop([
     {
-      _id: Types.ObjectId,
       startTime: String,
       endTime: String,
     },

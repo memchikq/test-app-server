@@ -11,6 +11,7 @@ import {
   StudentGroup,
   StudentGroupDocument,
 } from 'src/entity/entities/student-group.entity';
+import { GetScheduleDto } from './dto/get-schedule.dto';
 
 @Injectable()
 export class ScheduleService {
@@ -23,83 +24,70 @@ export class ScheduleService {
     private studentGroupModel: Model<StudentGroup>,
   ) {}
 
-  async getD() {
+  async getSchedule(dto:GetScheduleDto) {
     try {
-      // const groupedData = await this.scheduleModel.aggregate([
-      //   {
-      //     $unwind: '$slots', // Разворачиваем массив slots
-      //   },
-
-      //   {
-      //     $group: {
-      //       _id: '$slots.groupId', // Группируем по groupId
-      //       totalSlots: { $sum: 1 }, // Подсчитываем количество слотов
-      //       slots: { $push: '$slots' }, // Собираем все слоты в массив
-      //     },
-      //   },
-      //   {
-      //     $lookup: {
-      //       from: StudentGroup.name, // Коллекция, с которой объединяем
-      //       localField: 'slots.groupId', // Поле в текущей коллекции (после $group)
-      //       foreignField: '_id', // Поле в коллекции groups
-      //       as: 'groupInfo', // Имя нового поля для результатов объединения
-      //     },
-      //   },
-      // ]);
       const scheduleData = await this.scheduleModel.aggregate([
         {
+          $match: { templateId: new Types.ObjectId(dto.templateId) },
+        },
+        {
+          $unwind: '$slots',
+        },
+        {
           $lookup: {
-            from: 'templates',
-            localField: 'templateId',
+            from: 'classrooms',
+            localField: 'slots.classroomId',
             foreignField: '_id',
-            as: 'templateData',
+            as: 'slots.classroomData',
           },
         },
-        { $unwind: '$templateData' }, // Разворачиваем массив с Template
         {
-          $unwind: '$slots', // Разворачиваем массив slots (чтобы работать с каждым элементом отдельно)
+          $lookup: {
+            from: 'studentgroups',
+            localField: 'slots.groupId',
+            foreignField: '_id',
+            as: 'slots.groupData',
+          },
         },
         {
-          $project: {
-            _id: 0,
-            groupId: '$slots.groupId', // Группируем по groupId
-            classroom: {
-              $filter: {
-                input: '$templateData.classRooms',
-                as: 'classroom',
-                cond: { $eq: ['$$classroom._id', '$slots.classroomId'] },
-              },
-            },
-            subject: {
-              $filter: {
-                input: '$templateData.subjects',
-                as: 'subject',
-                cond: { $eq: ['$$subject._id', '$slots.subjectId'] },
-              },
-            },
-            timeSlot: {
-              $filter: {
-                input: '$templateData.timeRanges',
-                as: 'timeSlot',
-                cond: { $eq: ['$$timeSlot._id', '$slots.timeSlotId'] },
-              },
-            },
-            isFixed: '$slots.isFixed',
-            order: '$slots.order',
+          $lookup: {
+            from: 'subjects',
+            localField: 'slots.subjectId',
+            foreignField: '_id',
+            as: 'slots.subjectData',
           },
         },
         {
           $group: {
-            _id: '$groupId',
-            classrooms: { $push: { $arrayElemAt: ['$classroom', 0] } }, // Берём первый элемент массива
-            subjects: { $push: { $arrayElemAt: ['$subject', 0] } },
-            timeSlots: { $push: { $arrayElemAt: ['$timeSlot', 0] } },
-            isFixed: { $push: '$isFixed' },
-            order: { $push: '$order' },
+            _id: '$slots.groupId',
+            order: { $first: '$order' },
+            slots: { $push: '$slots' },
+          },
+        },
+        {
+          $sort: { order: 1 },
+        },
+        {
+          $project: {
+            _id: 1,
+            order: 1,
+            slots: {
+              $map: {
+                input: '$slots',
+                as: 'slot',
+                in: {
+                  timeSlot: '$$slot.timeSlot',
+                  isFixed: '$$slot.isFixed',
+                  classroomData: '$$slot.classroomData',
+                  groupData: '$$slot.groupData',
+                  subjectData: '$$slot.subjectData',
+                },
+              },
+            },
           },
         },
       ]);
-      return scheduleData
+      return scheduleData;
     } catch (error) {
       throw error;
     }
@@ -118,64 +106,74 @@ export class ScheduleService {
 
       const schedules = [];
       const timeSlots = template.timeRanges;
-      // const classRooms = template.classRooms;
-      // const subjects = template.subjects;
-      // const maxPossibleGroups = timeSlots.length * classRooms.length;
-      // if (groups.length > maxPossibleGroups) {
-      //   throw new BadRequestException(
-      //     `Невозможно распределить все группы. Максимальное количество групп которое можно распределить: ${maxPossibleGroups}`,
-      //   );
-      // }
+      const classRooms = template.classRooms;
+      const subjects = template.subjects;
+      const maxPossibleGroups = timeSlots.length * classRooms.length;
+      if (groups.length > maxPossibleGroups) {
+        throw new BadRequestException(
+          `Невозможно распределить все группы. Максимальное количество групп которое можно распределить: ${maxPossibleGroups}`,
+        );
+      }
       const shuffledGroups = this.shuffleArray([
         ...groups,
       ]) as StudentGroupDocument[];
       let order = 0;
-      // for (const timeSlot of timeSlots) {
-      //   const usedSlots = new Map();
+      const groupOrderMap = new Map();
+      for (const timeSlot of timeSlots) {
+        const usedSlots = new Map();
 
-      //   let classRoomIndex = 0;
+        let classRoomIndex = 0;
 
-      //   for (const group of shuffledGroups) {
-      //     const subject = subjects[Math.floor(Math.random() * subjects.length)];
-      //     const classRoom = classRooms[classRoomIndex % classRooms.length];
-      //     classRoomIndex++;
+        for (const group of shuffledGroups) {
+          const subject = subjects[Math.floor(Math.random() * subjects.length)];
+          const classRoom = classRooms[classRoomIndex % classRooms.length];
+          classRoomIndex++;
 
-      //     if (
-      //       !this.isConflict(
-      //         usedSlots,
-      //         group._id.toString(),
-      //         timeSlot._id.toString(),
-      //         classRoom._id.toString(),
-      //       )
-      //     ) {
-      //       this.markSlotAsUsed(
-      //         usedSlots,
-      //         group._id.toString(),
-      //         timeSlot._id.toString(),
-      //         classRoom._id.toString(),
-      //       );
-      //       schedules.push({
-      //         templateId: template._id,
-      //         slots: {
-      //           groupId: group._id,
-      //           subjectId: subject._id,
-      //           timeSlotId: timeSlot._id,
-      //           classroomId: classRoom._id,
-      //           isFixed: false,
-      //           order,
-      //         },
-      //       });
-      //       order++;
-      //     } else {
-      //       console.warn(
-      //         `Невозможно назначить группу ${group.name} в слот ${timeSlot}`,
-      //       );
-      //     }
-      //   }
-      // }
+          if (
+            !this.isConflict(
+              usedSlots,
+              group._id.toString(),
+              timeSlot._id.toString(),
+              classRoom._id.toString(),
+            )
+          ) {
+            this.markSlotAsUsed(
+              usedSlots,
+              group._id.toString(),
+              timeSlot._id.toString(),
+              classRoom._id.toString(),
+            );
+            if (!groupOrderMap.has(group.id)) {
+              order++;
+              groupOrderMap.set(group.id, order);
+            }
+
+            const currentOrder = groupOrderMap.get(group.id);
+
+            schedules.push({
+              templateId: template._id,
+              order: currentOrder,
+              slots: {
+                groupId: group._id,
+                subjectId: subject._id,
+                timeSlot: {
+                  startTime: timeSlot.startTime,
+                  endTime: timeSlot.endTime,
+                },
+                classroomId: classRoom._id,
+                isFixed: false,
+              },
+            });
+          } else {
+            console.warn(
+              `Невозможно назначить группу ${group.name} в слот ${timeSlot}`,
+            );
+          }
+        }
+      }
       console.log('schedule', schedules);
       console.log('schedule', schedules.length);
-      // await this.scheduleModel.insertMany(schedules);
+      await this.scheduleModel.insertMany(schedules);
       return schedules;
     } catch (error) {
       throw error;
