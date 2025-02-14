@@ -40,4 +40,8 @@ export class TemplateController {
   async getTemplateList() {
     return this.templateService.getTemplateList();
   }
+  @Get('id/list')
+  async getTemplateIdList() {
+    return this.templateService.getTemplateIdList();
+  }
 }

@@ -68,4 +68,12 @@ export class TemplateService {
       throw error;
     }
   }
+  async getTemplateIdList() {
+    try {
+      const templates = await this.templateModel.find().select("_id name")
+      return templates;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
