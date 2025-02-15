@@ -17,7 +17,7 @@ export class Schedule {
 
   @Prop([
     {
-      timeSlot: { startTime: String, endTime: String },
+      timeSlot: { _id:Types.ObjectId,startTime: String, endTime: String },
       classroomId: Types.ObjectId,
       subjectId: Types.ObjectId,
       groupId: Types.ObjectId,
@@ -25,12 +25,12 @@ export class Schedule {
     },
   ])
   slots: {
-    timeSlot: { startTime: string; endTime: string };
+    timeSlot: { _id:Types.ObjectId,startTime: string; endTime: string };
     classroomId: ObjectId;
     subjectId: ObjectId;
     groupId: ObjectId;
     isFixed: boolean;
-  };
+  }[];
 }
 
 export const ScheduleSchema = SchemaFactory.createForClass(Schedule);

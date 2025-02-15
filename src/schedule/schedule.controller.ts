@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
 import { GetScheduleDto } from './dto/get-schedule.dto';
 import { ApiBody } from '@nestjs/swagger';
 import { GenerateScheduleDto } from './dto/generate-schedule.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { UpdateLockStudentGroup } from './dto/update-lock-studentgroup.dto';
 
 @Controller('schedule')
 export class ScheduleController {
@@ -14,11 +15,22 @@ export class ScheduleController {
   async generateSchedule(@Body() dto: GenerateScheduleDto) {
     return this.scheduleService.generateSchedule(dto);
   }
+  @ApiBody({ type: GenerateScheduleDto })
+  @Post('regenerate')
+  async regenerateSchedule(@Body() dto: GenerateScheduleDto) {
+    return this.scheduleService.regenerateSchedule(dto);
+  }
 
   @ApiBody({ type: UpdateOrderDto })
   @Put('/update/order')
   async updateOrder(@Body() dto: UpdateOrderDto) {
     return this.scheduleService.updateOrder(dto);
+  }
+
+  @ApiBody({ type: UpdateLockStudentGroup })
+  @Put(':id/lock')
+  async updateLockStudentGroup(@Body() dto: UpdateLockStudentGroup,@Param() param:any) {
+    return this.scheduleService.updateLockStudentGroup(dto,param.id);
   }
 
   @Get()
