@@ -8,6 +8,7 @@ import { UpdateLockStudentGroup } from './dto/update-lock-studentgroup.dto';
 import { RegenerateScheduleDto } from './dto/regenerate-schedule.dto';
 import { GetAvailableClassroomDto } from './dto/get-available-classroom.dto';
 import { UpdateScheduleClassroomDto } from './dto/update-schedule-classroom.dto';
+import { UpdateScheduleSubjectDto } from './dto/update-schedule-subject.dto';
 
 @Controller('schedule')
 export class ScheduleController {
@@ -46,6 +47,14 @@ export class ScheduleController {
     @Param() param: any,
   ) {
     return this.scheduleService.updateScheduleClassRoom(dto, param.id);
+  }
+  @ApiBody({ type: UpdateScheduleSubjectDto })
+  @Put(':id/edit/subject')
+  async updateScheduleSubject(
+    @Body() dto: UpdateScheduleSubjectDto,
+    @Param() param: any,
+  ) {
+    return this.scheduleService.updateScheduleSubject(dto, param.id);
   }
   @Get()
   async getSchedule(@Query() dto: GetScheduleDto) {

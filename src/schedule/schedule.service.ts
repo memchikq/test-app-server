@@ -19,6 +19,9 @@ import { GetAvailableClassroomDto } from './dto/get-available-classroom.dto';
 import { ClassRooms } from 'src/entity/entities/classrooms.entity';
 import { UpdateScheduleClassroomDto } from './dto/update-schedule-classroom.dto';
 
+import { UpdateScheduleSubjectDto } from './dto/update-schedule-subject.dto';
+import { Subject } from 'src/entity/entities/subject.entity';
+
 @Injectable()
 export class ScheduleService {
   constructor(
@@ -30,6 +33,8 @@ export class ScheduleService {
     private studentGroupModel: Model<StudentGroup>,
     @InjectModel(ClassRooms.name)
     private classRoomsModel: Model<ClassRooms>,
+    @InjectModel(Subject.name)
+    private subjectModel: Model<Subject>,
   ) {}
 
   async getSchedule(dto: GetScheduleDto) {
@@ -411,6 +416,30 @@ export class ScheduleService {
         {
           $set: {
             'slots.$[elem].classroomId': classroom._id,
+          },
+        },
+        {
+          arrayFilters: [
+            { 'elem.timeSlot._id': new Types.ObjectId(dto.timeSlotId) },
+          ],
+        },
+      );
+      return { message: 'Комната успешно обновлена' };
+    } catch (error) {
+      throw error;
+    }
+  }
+  async updateScheduleSubject(dto: UpdateScheduleSubjectDto, id: string) {
+    try {
+      const subject = await this.subjectModel.findOne({
+        _id: new Types.ObjectId(dto.subjectId),
+      });
+      if (!subject) throw new BadRequestException('Аудитория не найдена');
+      await this.scheduleModel.updateMany(
+        { 'slots.groupId': new Types.ObjectId(id) },
+        {
+          $set: {
+            'slots.$[elem].subjectId': subject._id,
           },
         },
         {
