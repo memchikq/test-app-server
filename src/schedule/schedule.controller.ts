@@ -5,6 +5,7 @@ import { ApiBody } from '@nestjs/swagger';
 import { GenerateScheduleDto } from './dto/generate-schedule.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { UpdateLockStudentGroup } from './dto/update-lock-studentgroup.dto';
+import { RegenerateScheduleDto } from './dto/regenerate-schedule.dto';
 
 @Controller('schedule')
 export class ScheduleController {
@@ -15,9 +16,9 @@ export class ScheduleController {
   async generateSchedule(@Body() dto: GenerateScheduleDto) {
     return this.scheduleService.generateSchedule(dto);
   }
-  @ApiBody({ type: GenerateScheduleDto })
+  @ApiBody({ type: RegenerateScheduleDto })
   @Post('regenerate')
-  async regenerateSchedule(@Body() dto: GenerateScheduleDto) {
+  async regenerateSchedule(@Body() dto: RegenerateScheduleDto) {
     return this.scheduleService.regenerateSchedule(dto);
   }
 
