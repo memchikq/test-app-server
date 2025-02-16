@@ -15,6 +15,9 @@ import { GetScheduleDto } from './dto/get-schedule.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { UpdateLockStudentGroup } from './dto/update-lock-studentgroup.dto';
 import { RegenerateScheduleDto } from './dto/regenerate-schedule.dto';
+import { GetAvailableClassroomDto } from './dto/get-available-classroom.dto';
+import { ClassRooms } from 'src/entity/entities/classrooms.entity';
+import { UpdateScheduleClassroomDto } from './dto/update-schedule-classroom.dto';
 
 @Injectable()
 export class ScheduleService {
@@ -25,6 +28,8 @@ export class ScheduleService {
     private templateModel: Model<Template>,
     @InjectModel(StudentGroup.name)
     private studentGroupModel: Model<StudentGroup>,
+    @InjectModel(ClassRooms.name)
+    private classRoomsModel: Model<ClassRooms>,
   ) {}
 
   async getSchedule(dto: GetScheduleDto) {
@@ -199,8 +204,10 @@ export class ScheduleService {
 
       const fixedSlots = existingSchedules.filter((v) => v.slots[0].isFixed);
 
-      if(fixedSlots.length == existingSchedules.length){
-        throw new BadRequestException("Все группы заблокировааны от пересборки")
+      if (fixedSlots.length == existingSchedules.length) {
+        throw new BadRequestException(
+          'Все группы заблокировааны от пересборки',
+        );
       }
       const orders = [];
       existingSchedules.forEach((v) => {
@@ -221,7 +228,7 @@ export class ScheduleService {
         if (orders.includes(fixedSlot.order)) {
           const orderIndex = orders.findIndex((v) => v == fixedSlot.order);
           if (orderIndex !== -1) orders.splice(orderIndex, 1);
-        } 
+        }
         if (!groupOrderMap.has(fixedSlot.slots[0].groupId.toString())) {
           groupOrderMap.set(
             fixedSlot.slots[0].groupId.toString(),
@@ -318,7 +325,6 @@ export class ScheduleService {
         }
       }
 
-
       schedules.push(...fixedSlots);
       await this.scheduleModel.deleteMany({ templateId: template._id });
       await this.scheduleModel.insertMany(schedules);
@@ -352,6 +358,68 @@ export class ScheduleService {
         );
       }
       return { message: 'Поряд успешно изменён' };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAvailableClassroom(dto: GetAvailableClassroomDto) {
+    try {
+      const { timeSlotId, templateId } = dto;
+
+      const template = await this.templateModel.findById(templateId).exec();
+      if (!template) {
+        throw new Error('Template not found');
+      }
+
+      const schedules = await this.scheduleModel
+        .find({ templateId: new Types.ObjectId(templateId) })
+        .populate('slots.classroomId')
+        .exec();
+
+      const busyClassroomIds = schedules.flatMap((schedule) =>
+        schedule.slots
+          .filter((slot) => slot.timeSlot._id.toString() == timeSlotId)
+          .map((slot) => slot.classroomId),
+      );
+      const allClassroomIds = template.classRooms;
+
+      const availableClassroomIds = allClassroomIds.filter(
+        (classroomId) =>
+          !busyClassroomIds.some((busyId) =>
+            classroomId.equals(busyId.toString()),
+          ),
+      );
+      const availableClassrooms = await this.classRoomsModel
+        .find({ _id: { $in: availableClassroomIds } })
+        .exec();
+
+      return availableClassrooms;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateScheduleClassRoom(dto: UpdateScheduleClassroomDto, id: string) {
+    try {
+      const classroom = await this.classRoomsModel.findOne({
+        _id: new Types.ObjectId(dto.classRoomId),
+      });
+      if (!classroom) throw new BadRequestException('Аудитория не найдена');
+      await this.scheduleModel.updateMany(
+        { 'slots.groupId': new Types.ObjectId(id) },
+        {
+          $set: {
+            'slots.$[elem].classroomId': classroom._id,
+          },
+        },
+        {
+          arrayFilters: [
+            { 'elem.timeSlot._id': new Types.ObjectId(dto.timeSlotId) },
+          ],
+        },
+      );
+      return { message: 'Комната успешно обновлена' };
     } catch (error) {
       throw error;
     }
