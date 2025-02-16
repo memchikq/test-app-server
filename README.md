@@ -1,73 +1,39 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+## Тестовое заданин
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Для запуска нужно скачать, установить зависимости через npm i, запустить сервер через npm run start:dev
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Клиент запустить через npm run dev
 
-## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+![icon](https://i.imgur.com/2KzHuUZ.png)
 
-## Installation
+![icon](https://i.imgur.com/XXj4VA9.png)
 
-```bash
-$ npm install
-```
+Нужно через админку добавить сначала группы ученико, аудитории и предметы, после этого добавить шаблон расписания.
 
-## Running the app
 
-```bash
-# development
-$ npm run start
+Чтобы создать шаблон нужно вбить время в формате 08:00:09:00
+выбрать предметы и аудитории, важно чтобы аудиторий было не меньше чем групп учащихся.
 
-# watch mode
-$ npm run start:dev
+![icon](https://i.imgur.com/enFRss0.png)
 
-# production mode
-$ npm run start:prod
-```
+После того как шаблон задан, нужно пеерейти в Расписание и выбрать шаблон по названию 
 
-## Test
 
-```bash
-# unit tests
-$ npm run test
+![icon](https://i.imgur.com/9Y42UL9.png)
+![icon](https://i.imgur.com/6Jl11k1.png)
 
-# e2e tests
-$ npm run test:e2e
+После этого нужно вбить количество посещений и нажать кнопку
+![icon](https://i.imgur.com/gobT4ut.png)
 
-# test coverage
-$ npm run test:cov
-```
+После генерации можно попробовать получить другое расписание пересобрав его кнопкой вверху
 
-## Support
+![icon](https://i.imgur.com/5FbPFul.png)
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Под группой есть зеленая галочка, на нее можно нажать чтобы зафиксировать группу от пересборки.
 
-## Stay in touch
+Группы можно перетаскивать чтобы менять им порядок, можно также изменить аудиторию и предмет у конкретной группы в конкретное время 
+![icon](https://i.imgur.com/WUHaDzn.png)
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
 
-## License
-
-Nest is [MIT licensed](LICENSE).
+Данные от моей тестовой базы данных хранятся в env, а подключается в app.module, ее можно заменить на свою если нужно 
